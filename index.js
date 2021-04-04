@@ -32,7 +32,7 @@ let db = [
 app.set("port", process.env.PORT || 3001);
 
 //Middleware
-
+app.use(express.static("build"));
 app.use(express.json());
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :json")
@@ -53,7 +53,7 @@ app.get("/api/persons/:id", (req, res) => {
   });
   find
     ? res.status(200).json(find)
-    : res.status(404).send(`<h1>Error 404 contact not found</h1>`);
+    : res.status(404).json({ error: "contact not found 404" });
 });
 
 app.get("/info", (req, res) => {
