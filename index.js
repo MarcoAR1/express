@@ -61,26 +61,16 @@ app.post("/api/persons", (req, res, next) => {
   const { name, number } = req.body;
 
   if (name && number) {
-    if (/^[a-zA-Z0-9\s_\-]+$/.test(name) && /[0-9+\s_\-]+/.test(number)) {
-      const newContact = new Contact({
-        name: name,
-        number: number,
-      });
-      newContact
-        .save()
-        .then((contact) => {
-          res.status(201).json(contact);
-        })
-        .catch((err) => next(err));
-    } else {
-      /^[a-zA-Z0-9\s_\-]+$/.test(name)
-        ? res.status(400).json({ error: "invalid number field" })
-        : res.status(400).json({ error: "invalid name field" });
-    }
-  } else {
-    name
-      ? res.status(400).json({ error: "missing number field" })
-      : res.status(400).json({ error: "missing name field" });
+    const newContact = new Contact({
+      name: name,
+      number: number,
+    });
+    newContact
+      .save()
+      .then((contact) => {
+        res.status(201).json(contact);
+      })
+      .catch((err) => next(err));
   }
 });
 
@@ -93,7 +83,7 @@ app.put("/api/persons/:id", (req, res, next) => {
       name: req.body.name,
       number: req.body.number,
     },
-    { new: true }
+    { new: true, runValidators: true, context: "query" }
   )
     .then((contact) => {
       contact ? res.status(200).json(contact) : res.status(404).end();
@@ -105,8 +95,14 @@ app.put("/api/persons/:id", (req, res, next) => {
 
 const errorHandler = (err, _, res, next) => {
   console.error(err.message);
-  if (err.name === "CastError") {
-    return res.status(404).send({ error: "malformatted id" });
+  if (err.name === "ValidationError") {
+    return res.status(400).send({
+      error: err.errors.name
+        ? err.errors.name.message
+        : err.errors.number.message,
+    });
+  } else if (err.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
   }
   next(error);
 };

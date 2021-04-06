@@ -1,8 +1,17 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
 const contactSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    require: true,
+    unique: true,
+    minlength: 3,
+  },
+  number: {
+    type: String,
+    minlength: 8,
+  },
 });
 const Contact = mongoose.model("Persons", contactSchema);
 contactSchema.set("toJSON", {
@@ -12,5 +21,6 @@ contactSchema.set("toJSON", {
     delete returnedObject.__v;
   },
 });
+contactSchema.plugin(uniqueValidator);
 
 module.exports = Contact;
